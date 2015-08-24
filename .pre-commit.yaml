@@ -1,13 +1,5 @@
-active:
-  - php-code-style
 hooks:
-  -
-    id: php-code-style
-    #script: "./bin/php-cs-fixer fix --diff %file%"
-    #script: "cat %file% | php ./bin/php-cs-fixer fix --diff -"
-    #script: "./bin/php-cs-fixer fix --diff --dry-run %file%"
+  php-code-style:
     description: "PHP Code Style"
     class: RedCode\GitHook\Process\PhpCsProcess
-    file_types: "*.php,*.phtml"
-    paths:
-        - src/RedCode/GitHook
+    file_types: "php,phtml"

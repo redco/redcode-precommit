@@ -18,6 +18,7 @@ class Application extends BaseApplication
     public function getLongVersion()
     {
         $version = parent::getLongVersion().' by <comment>Andrew Reddikh</comment>';
+
         return $version;
     }
 }

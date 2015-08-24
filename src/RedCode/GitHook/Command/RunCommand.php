@@ -25,6 +25,6 @@ class RunCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        (new GitHookManager())->runHooks($output);
+        return (new GitHookManager())->runHooks($output);
     }
 }

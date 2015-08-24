@@ -1,17 +1,3 @@
 #!/bin/sh
 php ./bin/precommit redcode:precommit:run
-#echo "exit code: $?"
 exit $?;
-
-
-##!/usr/bin/env php
-#<?php
-#$cmd = __DIR__ . '/bin/precommit redcode:precommit:run';
-#$result = exec($cmd, $output, $code);
-#print_r($output);
-#exit($code);
-
-/*
-#!/bin/sh
-php ./bin/precommit redcode:precommit:run
- */
