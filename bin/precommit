@@ -1,22 +1,15 @@
 #!/usr/bin/env php
 <?php
 
-use Symfony\Component\Console\Application;
+use RedCode\GitHook\Application;
+use RedCode\GitHook\Command;
 
-$localPath = getcwd() . '/';
-if(file_exists($localPath . '../vendor/autoload.php')) {
-    include_once $localPath . '../vendor/autoload.php';
+// installed via composer?
+if (file_exists($a = __DIR__ . '/../../../autoload.php')) {
+    require_once $a;
+} else {
+    require_once __DIR__ . '/../vendor/autoload.php';
 }
-else if(file_exists($localPath . 'vendor/autoload.php')) {
-    include_once $localPath . 'vendor/autoload.php';
-}
-else {
-    echo 'Cannot initialize vendors';
-    exit(0);
-}
-// adding the name of calling command
-if(!empty($_SERVER['argv'])) {
-    array_splice($_SERVER['argv'], 1, 0, 'redcode:deploy');
-}
+
 $app = new Application();
 $app->run();
