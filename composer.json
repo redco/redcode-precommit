@@ -1,0 +1,27 @@
+{
+  "name": "redcode/precommit",
+  "description": "Adds ability to manipulate with git pre commit hooks",
+  "keywords": ["git", "vcs", "hook", "php"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Andrew Reddikh",
+      "email": "andrew@reddikh.com"
+    },
+    {
+      "name": "RedCode",
+      "homepage": "http://redcode.im"
+    }
+  ],
+  "minimum-stability": "stable",
+  "bin": ["bin/precommit"],
+  "require": {
+    "php": ">=5.4.0",
+    "symfony/console": ">=2.5",
+    "symfony/yaml": ">=2.5",
+    "symfony/process": "~2.0"
+  },
+  "autoload": {
+    "psr-0": { "RedCode\\GitHook": "src/" }
+  }
+}
