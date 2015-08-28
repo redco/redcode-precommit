@@ -199,6 +199,21 @@ class GitHook
     }
 
     /**
+     * @param array $files
+     *
+     * @return array
+     */
+    public function getMatchFiles(array $files)
+    {
+        return array_filter(
+            $files,
+            function ($file) {
+                return $this->match($file);
+            }
+        );
+    }
+
+    /**
      * @param $file
      *
      * @return bool
@@ -230,7 +245,7 @@ class GitHook
         }
 
         foreach ($this->getPaths() as $path) {
-            if (strpos($file, $path) !== false) {
+            if (strpos(realpath($file), $path) !== false) {
                 return true;
             }
         }

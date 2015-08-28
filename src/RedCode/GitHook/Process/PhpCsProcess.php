@@ -18,7 +18,7 @@ class PhpCsProcess extends AbstractGitHookProcess
     /**
      * {@inheritdoc}
      */
-    public function run(GitHook $hook, OutputInterface $output, array $files = [])
+    public function execute(GitHook $hook, OutputInterface $output, array $files = [])
     {
         $config = null;
         if (file_exists($configFile = './.php_cs')) {
@@ -33,7 +33,7 @@ class PhpCsProcess extends AbstractGitHookProcess
 
         return (new CommandProcess(self::COMMAND))
             ->setOutputWrapper(new PhpCsOutputWrapper())
-            ->run($hook, $output, $files);
+            ->execute($hook, $output, $files);
     }
 
     /**

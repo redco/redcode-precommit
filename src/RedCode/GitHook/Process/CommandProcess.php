@@ -27,15 +27,11 @@ class CommandProcess extends AbstractGitHookProcess
     /**
      * {@inheritdoc}
      */
-    public function run(GitHook $hook, OutputInterface $output, array $files = [])
+    public function execute(GitHook $hook, OutputInterface $output, array $files = [])
     {
         $exitCode = 0;
         foreach ($files as $file) {
             $absoluteFile = realpath($file);
-            if (!$hook->match($absoluteFile)) {
-                continue;
-            }
-
             $command = str_replace('%file%', $absoluteFile, $this->command);
             $command = str_replace('%relativeFile%', $file, $command);
             $process = new Process($command);

@@ -26,23 +26,20 @@ class GitHookManager
         $exitCode = 0;
 
         foreach ($hooks as $hook) {
-            $customProcess = $hook->getClass();
-            $customProcess = $customProcess && class_exists($customProcess) ?
-                new $customProcess() :
+            $process = $hook->getClass();
+            $process = $process && class_exists($process) ?
+                new $process() :
                 null;
 
             if ($hook->getClass()) {
-                if (!$customProcess instanceof AbstractGitHookProcess) {
+                if (!$process instanceof AbstractGitHookProcess) {
                     throw new \UnexpectedValueException(
                         sprintf('Class %s must extends AbstractGitHookProcess', $hook->getClass())
                     );
                 }
-
-                $process = $customProcess;
             } else {
                 $process = new CommandProcess($hook->getScript());
             }
-            $output->writeln(sprintf('<info>Checking %s</info>', $hook->getDescription()));
             $exitCode |= $process->run($hook, $output, $files);
         }
         if ($exitCode) {
