@@ -3,14 +3,21 @@
 namespace RedCode\GitHook\Process;
 
 use RedCode\GitHook\GitHook;
+use RedCode\GitHook\Process\Output\AbstractOutputWrapper;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
-use Symfony\CS\Config\Config;
-use Symfony\CS\FixerInterface;
 
 class CommandProcess extends AbstractGitHookProcess
 {
+    /**
+     * @var string
+     */
     private $command;
+
+    /**
+     * @var AbstractOutputWrapper
+     */
+    private $outputWrapper;
 
     public function __construct($command)
     {
@@ -20,27 +27,36 @@ class CommandProcess extends AbstractGitHookProcess
     /**
      * {@inheritdoc}
      */
-    public function run(GitHook $hook, OutputInterface $output, array $files = [])
+    public function execute(GitHook $hook, OutputInterface $output, array $files = [])
     {
         $exitCode = 0;
-        $counter = 1;
         foreach ($files as $file) {
-            $file = realpath($file);
-            if (!$hook->match($file)) {
-                continue;
-            }
-
-            $command = str_replace('%file%', $file, $this->command);
+            $absoluteFile = realpath($file);
+            $command = str_replace('%file%', $absoluteFile, $this->command);
+            $command = str_replace('%relativeFile%', $file, $command);
             $process = new Process($command);
             if ($processResult = $process->run()) {
-                $processOutput = preg_replace('/Fixed.*\n/u', '', $process->getOutput());
-                $processOutput = preg_replace('/1\)/u', sprintf('%s)', $counter++), $processOutput);
-                preg_replace('/^Fixed.*\n/u', '', $process->getOutput());
+                $processOutput = $process->getOutput();
+                if ($this->outputWrapper instanceof AbstractOutputWrapper) {
+                    $processOutput = $this->outputWrapper->getOutput($processOutput, $file);
+                }
                 $output->write($processOutput);
                 $exitCode |= $processResult;
             }
         }
 
         return $exitCode;
+    }
+
+    /**
+     * @param AbstractOutputWrapper $outputWrapper
+     *
+     * @return self
+     */
+    public function setOutputWrapper(AbstractOutputWrapper $outputWrapper)
+    {
+        $this->outputWrapper = $outputWrapper;
+
+        return $this;
     }
 }

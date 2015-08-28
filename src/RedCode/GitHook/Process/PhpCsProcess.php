@@ -3,18 +3,22 @@
 namespace RedCode\GitHook\Process;
 
 use RedCode\GitHook\GitHook;
+use RedCode\GitHook\Process\Output\PhpCsOutputWrapper;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\CS\Config\Config;
 use Symfony\CS\FixerInterface;
 
 class PhpCsProcess extends AbstractGitHookProcess
 {
-    const COMMAND = './bin/php-cs-fixer fix --diff --dry-run %file%';
+    /*
+     * TODO: fix command to 'git show :%relativeFile% | ./bin/php-cs-fixer fix --diff -' after PR will be merged https://github.com/FriendsOfPHP/PHP-CS-Fixer/pull/1356
+     */
+    const COMMAND = './bin/php-cs-fixer fix --diff --dry-run %relativeFile%';
 
     /**
      * {@inheritdoc}
      */
-    public function run(GitHook $hook, OutputInterface $output, array $files = [])
+    public function execute(GitHook $hook, OutputInterface $output, array $files = [])
     {
         $config = null;
         if (file_exists($configFile = './.php_cs')) {
@@ -27,16 +31,17 @@ class PhpCsProcess extends AbstractGitHookProcess
         }
         $this->showDescription($output, $config);
 
-        return (new CommandProcess(self::COMMAND))->run($hook, $output, $files);
+        return (new CommandProcess(self::COMMAND))
+            ->setOutputWrapper(new PhpCsOutputWrapper())
+            ->execute($hook, $output, $files);
     }
 
     /**
      * @param OutputInterface $output
-     * @param Config $config
+     * @param Config          $config
      */
     private function showDescription(OutputInterface $output, Config $config = null)
     {
-        $output->writeln("<info>Checking PHP Code Style</info>");
         if ($config) {
             $output->writeln(
                 sprintf(

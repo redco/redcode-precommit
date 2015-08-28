@@ -19,7 +19,6 @@ class GitHookManager
         chdir($this->getRootDir());
     }
 
-
     public function runHooks(OutputInterface $output)
     {
         $files = $this->getCommittedFiles();
@@ -27,40 +26,39 @@ class GitHookManager
         $exitCode = 0;
 
         foreach ($hooks as $hook) {
-            $customProcess = $hook->getClass();
-            $customProcess = $customProcess && class_exists($customProcess) ?
-                new $customProcess :
+            $process = $hook->getClass();
+            $process = $process && class_exists($process) ?
+                new $process() :
                 null;
 
             if ($hook->getClass()) {
-                if (!$customProcess instanceof AbstractGitHookProcess) {
+                if (!$process instanceof AbstractGitHookProcess) {
                     throw new \UnexpectedValueException(
                         sprintf('Class %s must extends AbstractGitHookProcess', $hook->getClass())
                     );
                 }
-
-                $process = $customProcess;
             } else {
                 $process = new CommandProcess($hook->getScript());
             }
             $exitCode |= $process->run($hook, $output, $files);
         }
         if ($exitCode) {
-            return $exitCode;
+            $output->writeln('<error>Before commit you have to fix above errors</error>');
         }
 
-        return 0;
+        return $exitCode;
     }
 
     public function installHooks(OutputInterface $output)
     {
         if ($this->installationStatus()) {
             $output->writeln('You already have installed hooks');
+
             return false;
         }
 
         $process = new Process(
-            sprintf('ln -s %s %s', __DIR__ . '/../../../pre-commit', './.git/hooks/pre-commit')
+            sprintf('ln -s %s %s', __DIR__.'/../../../pre-commit', './.git/hooks/pre-commit')
         );
         $process->run();
         if ($process->isSuccessful()) {
@@ -73,6 +71,7 @@ class GitHookManager
 
     /**
      * @param OutputInterface $output
+     *
      * @return bool
      */
     public function installationStatus(OutputInterface $output = null)
@@ -81,7 +80,7 @@ class GitHookManager
             $process = new Process(sprintf('readlink %s', $file));
             if (!$process->run()) {
                 $realFile = realpath(trim($process->getOutput()));
-                $preCommitFile = realpath(__DIR__ . self::PRE_COMMIT_HOOK_FILE);
+                $preCommitFile = realpath(__DIR__.self::PRE_COMMIT_HOOK_FILE);
                 if ($realFile !== $preCommitFile) {
                     $output && $output->writeln('Some other pre-commit hook has installed');
                     $output && $output->writeln('<comment>You need to uninstall them first</comment>');
@@ -126,7 +125,7 @@ class GitHookManager
      */
     public function getCommittedFiles()
     {
-        $process = new Process("git diff --cached --name-only --diff-filter=ACMR");
+        $process = new Process('git diff --cached --name-only --diff-filter=ACMR');
         $process->run();
 
         return array_filter(explode("\n", $process->getOutput()));
@@ -134,14 +133,15 @@ class GitHookManager
 
     /**
      * @param bool $activeOnly
+     *
      * @return GitHook[]
      */
     public function getHooks($activeOnly = false)
     {
         $hooks = [];
         $config = $this->getConfig();
-        foreach ($config['hooks'] as $item) {
-            $hookStatus = in_array($item['id'], $config['active']) ?
+        foreach ($config['hooks'] as $id => $item) {
+            $hookStatus = in_array($id, $config['active']) ?
                 GitHook::STATUS_ACTIVE :
                 GitHook::STATUS_NOT_ACTIVE;
 
@@ -149,22 +149,28 @@ class GitHookManager
                 continue;
             }
 
-            $hooks[$item['id']] = $hook = (new GitHook())
-                ->setId($item['id'])
-                ->setClass($item['class'])
+            $hooks[$id] = $hook = (new GitHook())
+                ->setId($id)
                 ->setStatus($hookStatus);
             if (!empty($item['script'])) {
                 $hook->setScript($item['script']);
             }
             if (!empty($item['class'])) {
-                $hook->setScript($item['class']);
+                $hook->setClass($item['class']);
             }
-            $types = array_filter(explode(',', $item['file_types']), 'trim');
-            foreach ($types as $type) {
-                $hook->addFileType($type);
+            if (!empty($item['description'])) {
+                $hook->setDescription($item['description']);
             }
-            foreach ($item['paths'] as $path) {
-                $hook->addPath($path);
+            if (!empty($item['file_types'])) {
+                $types = array_filter(explode(',', $item['file_types']), 'trim');
+                foreach ($types as $type) {
+                    $hook->addFileType($type);
+                }
+            }
+            if (!empty($item['paths']) && is_array($item['paths'])) {
+                foreach ($item['paths'] as $path) {
+                    $hook->addPath($path);
+                }
             }
         }
 
@@ -180,15 +186,18 @@ class GitHookManager
 
         $configs = [];
         // local config
-        if (file_exists($file = __DIR__ . '/../../../' . self::CONFIG_FILE_NAME)) {
+        if (file_exists($file = __DIR__.'/../../../'.self::CONFIG_FILE_NAME)) {
             $configs[] = $yaml->parse($file);
         }
         // project config
-        if (file_exists($file = __DIR__ . '/../../../../../../' . self::CONFIG_FILE_NAME)) {
+        if (file_exists($file = __DIR__.'/../../../../../../'.self::CONFIG_FILE_NAME)) {
             $configs[] = $yaml->parse($file);
         }
 
-        $config = [];
+        $config = [
+            'active' => [],
+            'hooks' => [],
+        ];
         foreach ($configs as $configInfo) {
             $config = array_merge_recursive($config, $configInfo);
             $config['active'] = array_unique($config['active']);
@@ -202,10 +211,10 @@ class GitHookManager
      */
     private function getRootDir()
     {
-        if ($file = file_exists(__DIR__ . '/../../../../../autoload.php')) {
-            return realpath(__DIR__ . '/../../../../../../');
+        if ($file = file_exists(__DIR__.'/../../../../../autoload.php')) {
+            return realpath(__DIR__.'/../../../../../../');
         }
 
-        return realpath(__DIR__ . '/../../../');
+        return realpath(__DIR__.'/../../../');
     }
 }
