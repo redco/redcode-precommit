@@ -25,6 +25,6 @@ class InstallCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        (new GitHookManager())->installHooks($output);
+        (new GitHookManager($output))->install();
     }
 }

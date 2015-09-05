@@ -19,15 +19,20 @@ class CommandProcess extends AbstractGitHookProcess
      */
     private $outputWrapper;
 
-    public function __construct($command)
+    /**
+     * @param string               $command
+     * @param OutputInterface|null $output
+     */
+    public function __construct($command, OutputInterface $output = null)
     {
+        parent::__construct($output);
         $this->command = $command;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function execute(GitHook $hook, OutputInterface $output, array $files = [])
+    public function execute(GitHook $hook, array $files = [])
     {
         $exitCode = 0;
         foreach ($files as $file) {
@@ -40,7 +45,7 @@ class CommandProcess extends AbstractGitHookProcess
                 if ($this->outputWrapper instanceof AbstractOutputWrapper) {
                     $processOutput = $this->outputWrapper->getOutput($processOutput, $file);
                 }
-                $output->write($processOutput);
+                $this->writeln($processOutput);
                 $exitCode |= $processResult;
             }
         }
