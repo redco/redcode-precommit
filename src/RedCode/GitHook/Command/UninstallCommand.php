@@ -25,6 +25,6 @@ class UninstallCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        (new GitHookManager())->uninstallHooks($output);
+        (new GitHookManager($output))->uninstall();
     }
 }

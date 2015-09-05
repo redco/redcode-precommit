@@ -25,6 +25,6 @@ class StatusCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        (new GitHookManager())->installationStatus($output);
+        (new GitHookManager($output))->isInstalled();
     }
 }
