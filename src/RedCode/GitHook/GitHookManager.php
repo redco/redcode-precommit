@@ -8,18 +8,26 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 
-class GitHookManager
+class GitHookManager implements OutputAwareInterface
 {
+    use OutputAwareTrait;
+
     const CONFIG_FILE_NAME = '.pre-commit.yaml';
     const PRE_COMMIT_HOOK_LINK = '.git/hooks/pre-commit';
     const PRE_COMMIT_HOOK_FILE = '/../../../pre-commit';
 
-    public function __construct()
+    public function __construct(OutputInterface $output = null)
     {
+        $this->setOutput($output);
         chdir($this->getRootDir());
     }
 
-    public function runHooks(OutputInterface $output)
+    /**
+     * Execute all active pre-commit hooks.
+     *
+     * @return int
+     */
+    public function run()
     {
         $files = $this->getCommittedFiles();
         $hooks = $this->getHooks(true);
@@ -40,19 +48,30 @@ class GitHookManager
             } else {
                 $process = new CommandProcess($hook->getScript());
             }
-            $exitCode |= $process->run($hook, $output, $files);
+            if ($process instanceof OutputAwareInterface) {
+                $process->setOutput($this->getOutput());
+            }
+            $exitCode |= $process->run($hook, $files);
         }
         if ($exitCode) {
-            $output->writeln('<error>Before commit you have to fix above errors</error>');
+            $this->writeln(
+                'Something went wrong. You need to fix above errors before committing',
+                OutputAwareInterface::TYPE_ERROR
+            );
         }
 
         return $exitCode;
     }
 
-    public function installHooks(OutputInterface $output)
+    /**
+     * Returns true when has installed successfully, false otherwise.
+     *
+     * @return bool
+     */
+    public function install()
     {
-        if ($this->installationStatus()) {
-            $output->writeln('You already have installed hooks');
+        if ($this->isInstalled(true)) {
+            $this->writeln('You already have installed hooks', OutputAwareInterface::TYPE_COMMENT);
 
             return false;
         }
@@ -62,19 +81,21 @@ class GitHookManager
         );
         $process->run();
         if ($process->isSuccessful()) {
-            $output->writeln('pre-commit hooks are successfully installed');
+            $this->writeln('Pre-commit hook has been successfully installed', OutputAwareInterface::TYPE_INFO);
         } else {
-            $output->writeln('Errors occurred during installation');
-            $output->writeln($process->getOutput());
+            $this->writeln('Some errors occurred during the installation process', OutputAwareInterface::TYPE_ERROR);
+            $this->writeln($process->getOutput());
         }
     }
 
     /**
-     * @param OutputInterface $output
+     * Return true if it was successfuly installed, false otherwise.
+     *
+     * @param bool $silentMode
      *
      * @return bool
      */
-    public function installationStatus(OutputInterface $output = null)
+    public function isInstalled($silentMode = false)
     {
         if (file_exists($file = self::PRE_COMMIT_HOOK_LINK)) {
             $process = new Process(sprintf('readlink %s', $file));
@@ -82,30 +103,43 @@ class GitHookManager
                 $realFile = realpath(trim($process->getOutput()));
                 $preCommitFile = realpath(__DIR__.self::PRE_COMMIT_HOOK_FILE);
                 if ($realFile !== $preCommitFile) {
-                    $output && $output->writeln('Some other pre-commit hook has installed');
-                    $output && $output->writeln('<comment>You need to uninstall them first</comment>');
+                    if (!$silentMode) {
+                        $this->writeln('Another pre-commit hook is installed', OutputAwareInterface::TYPE_ERROR);
+                        $this->writeln('You need to uninstall it first', OutputAwareInterface::TYPE_COMMENT);
+                    }
 
                     return true;
                 }
 
-                $output && $output->writeln('<info>Installed hooks</info>');
-                foreach ($this->getHooks(true) as $hook) {
-                    $output && $output->writeln(sprintf(' * <comment>%s</comment>', $hook->getId()));
+                if (!$silentMode) {
+                    $this->writeln('Next pre-commit hooks are installed:', OutputAwareInterface::TYPE_INFO);
+                    foreach ($this->getHooks(true) as $hook) {
+                        $this->writeln(
+                            sprintf(' * %s (%s)', $hook->getId(), $hook->getDescription()),
+                            OutputAwareInterface::TYPE_COMMENT
+                        );
+                    }
                 }
 
                 return true;
             }
         }
-
-        $output && $output->writeln('<info>Hooks are not installed</info>');
+        if (!$silentMode) {
+            $this->writeln('Pre-commit hook is not installed', OutputAwareInterface::TYPE_COMMENT);
+        }
 
         return false;
     }
 
-    public function uninstallHooks(OutputInterface $output)
+    /**
+     * @return bool
+     */
+    public function uninstall()
     {
-        if (!$this->installationStatus()) {
-            $output->writeln('<info>Hooks are not installed</info>');
+        if (!$this->isInstalled(true)) {
+            $this->writeln('Pre-commit hook is not installed.', OutputAwareInterface::TYPE_COMMENT);
+
+            return false;
         }
 
         $process = new Process(
@@ -113,10 +147,10 @@ class GitHookManager
         );
         $process->run();
         if ($process->isSuccessful()) {
-            $output->writeln('pre-commit hooks are successfully removed');
+            $this->writeln('Pre-commit hook has been successfully removed', OutputAwareInterface::TYPE_INFO);
         } else {
-            $output->writeln('Errors occurred during uninstall process');
-            $output->writeln($process->getOutput());
+            $this->writeln('Some errors occurred during the uninstall process', OutputAwareInterface::TYPE_ERROR);
+            $this->writeln($process->getOutput());
         }
     }
 

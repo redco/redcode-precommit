@@ -8,7 +8,7 @@ class Application extends BaseApplication
 {
     public function __construct()
     {
-        parent::__construct('pre-commit utility', GitHook::VERSION);
+        parent::__construct('Pre-commit utility', GitHook::VERSION);
         $this->add(new Command\InstallCommand());
         $this->add(new Command\UninstallCommand());
         $this->add(new Command\StatusCommand());

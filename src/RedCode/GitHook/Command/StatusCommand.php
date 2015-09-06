@@ -15,8 +15,8 @@ class StatusCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('redcode:precommit:status')
-            ->setDescription('Status of pre-commit hooks in project path')
+            ->setName('status')
+            ->setDescription('Status of pre-commit hooks')
         ;
     }
 
@@ -25,6 +25,6 @@ class StatusCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        (new GitHookManager())->installationStatus($output);
+        (new GitHookManager($output))->isInstalled();
     }
 }
