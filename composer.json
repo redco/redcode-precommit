@@ -1,7 +1,7 @@
 {
-  "name": "redcode/precommit",
+  "name": "redcode/pre-commit",
   "description": "Adds ability to manipulate with git pre commit hooks",
-  "keywords": ["git", "vcs", "hook", "php"],
+  "keywords": ["pre-commit", "precommit", "commit", "git", "vcs", "hook", "php", "code", "style"],
   "license": "MIT",
   "authors": [
     {
@@ -14,7 +14,7 @@
     }
   ],
   "minimum-stability": "stable",
-  "bin": ["bin/precommit"],
+  "bin": ["bin/pre-commit"],
   "require": {
     "php": ">=5.4.0",
     "symfony/console": ">=2.5",

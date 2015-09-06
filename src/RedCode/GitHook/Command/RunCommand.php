@@ -15,8 +15,8 @@ class RunCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('redcode:precommit:run')
-            ->setDescription('Run pre-commit hook')
+            ->setName('run')
+            ->setDescription('Run pre-commit hooks')
         ;
     }
 

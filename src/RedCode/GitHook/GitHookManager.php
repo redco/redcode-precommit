@@ -115,7 +115,7 @@ class GitHookManager implements OutputAwareInterface
                     $this->writeln('Next pre-commit hooks are installed:', OutputAwareInterface::TYPE_INFO);
                     foreach ($this->getHooks(true) as $hook) {
                         $this->writeln(
-                            sprintf(' * %s', $hook->getId()),
+                            sprintf(' * %s (%s)', $hook->getId(), $hook->getDescription()),
                             OutputAwareInterface::TYPE_COMMENT
                         );
                     }
