@@ -1,7 +1,7 @@
 {
   "name": "redcode/pre-commit",
   "description": "Adds ability to manipulate with git pre commit hooks",
-  "keywords": ["pre-commit", "commit", "commit", "git", "vcs", "hook", "php", "code", "style"],
+  "keywords": ["pre-commit", "precommit", "commit", "git", "vcs", "hook", "php", "code", "style"],
   "license": "MIT",
   "authors": [
     {
