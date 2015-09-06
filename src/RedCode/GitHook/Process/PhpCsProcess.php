@@ -4,7 +4,6 @@ namespace RedCode\GitHook\Process;
 
 use RedCode\GitHook\GitHook;
 use RedCode\GitHook\Process\Output\PhpCsOutputWrapper;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\CS\Config\Config;
 use Symfony\CS\FixerInterface;
 
@@ -18,32 +17,37 @@ class PhpCsProcess extends AbstractGitHookProcess
     /**
      * {@inheritdoc}
      */
-    public function execute(GitHook $hook, OutputInterface $output, array $files = [])
+    public function execute(GitHook $hook, array $files = [])
     {
         $config = null;
         if (file_exists($configFile = './.php_cs')) {
             $config = include $configFile;
             // verify that the config has an instance of Config
             if (!$config instanceof Config) {
-                throw new \UnexpectedValueException(sprintf('The config file "%s" does not return a "Symfony\CS\Config\Config" instance. Got: "%s".',
-                    $configFile, is_object($config) ? get_class($config) : gettype($config)));
+                throw new \UnexpectedValueException(
+                    sprintf(
+                        'The config file "%s" does not return a "Symfony\CS\Config\Config" instance. Got: "%s".',
+                        $configFile,
+                        is_object($config) ? get_class($config) : gettype($config)
+                    )
+                );
             }
         }
-        $this->showDescription($output, $config);
+        $this->showDescription($config);
 
         return (new CommandProcess(self::COMMAND))
+            ->setOutput($this->getOutput())
             ->setOutputWrapper(new PhpCsOutputWrapper())
-            ->execute($hook, $output, $files);
+            ->execute($hook, $files);
     }
 
     /**
-     * @param OutputInterface $output
-     * @param Config          $config
+     * @param Config $config
      */
-    private function showDescription(OutputInterface $output, Config $config = null)
+    private function showDescription(Config $config = null)
     {
         if ($config) {
-            $output->writeln(
+            $this->writeln(
                 sprintf(
                     'Level: <comment>%s</comment>, Fixers: <comment>%s</comment>',
                     $this->getLevelName($config),
@@ -53,6 +57,13 @@ class PhpCsProcess extends AbstractGitHookProcess
         }
     }
 
+    /**
+     * Returns level name from config.
+     *
+     * @param Config $config
+     *
+     * @return string
+     */
     private function getLevelName(Config $config)
     {
         static $map = [

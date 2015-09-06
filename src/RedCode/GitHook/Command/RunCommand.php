@@ -15,8 +15,8 @@ class RunCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('redcode:precommit:run')
-            ->setDescription('Run pre-commit hook')
+            ->setName('run')
+            ->setDescription('Run pre-commit hooks')
         ;
     }
 
@@ -25,6 +25,6 @@ class RunCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        return (new GitHookManager())->runHooks($output);
+        return (new GitHookManager($output))->run();
     }
 }
