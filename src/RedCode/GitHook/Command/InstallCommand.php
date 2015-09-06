@@ -15,8 +15,8 @@ class InstallCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('redcode:precommit:install')
-            ->setDescription('Install pre-commit hooks to the local system')
+            ->setName('install')
+            ->setDescription('Install pre-commit hooks to the local git repository')
         ;
     }
 

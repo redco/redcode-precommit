@@ -9,7 +9,10 @@ use Symfony\CS\FixerInterface;
 
 class PhpCsProcess extends AbstractGitHookProcess
 {
-    const COMMAND = 'git show :%relativeFile% | ./bin/php-cs-fixer fix --diff -';
+    /*
+     * TODO: fix command to 'git show :%relativeFile% | ./bin/php-cs-fixer fix --diff -' after PR will be merged https://github.com/FriendsOfPHP/PHP-CS-Fixer/pull/1356
+     */
+    const COMMAND = './bin/php-cs-fixer fix --diff --dry-run %relativeFile%';
 
     /**
      * {@inheritdoc}

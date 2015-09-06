@@ -1,3 +1,3 @@
 #!/bin/sh
-php ./bin/precommit redcode:precommit:run
+php ./bin/pre-commit run
 exit $?;

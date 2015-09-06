@@ -15,8 +15,8 @@ class UninstallCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('redcode:precommit:uninstall')
-            ->setDescription('Uninstall pre-commit hooks from the local system')
+            ->setName('uninstall')
+            ->setDescription('Uninstall pre-commit hooks from the local git repository')
         ;
     }
 
